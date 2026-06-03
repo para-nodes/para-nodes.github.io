@@ -39,4 +39,6 @@
 
 ### 特別なファイル  
 * `/statics/main-script.js`  
-  \<script src="/statics/main-script.js">\<\\script>で読み込む。
+  \<script src="/statics/main-script.js">\<\\script>で読み込む。  
+  \<nav class="bread-crumb">\<\\nav>を記述した箇所にパンくずリストを生成する。  
+
