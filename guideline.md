@@ -25,4 +25,4 @@
 ## 各ファイル/フォルダについて  
 ### ファイル/フォルダの階層の名称  
 各ファイル/フォルダの名称に使用される記法は*ケバブケース*とします。  
-例: `static/para-nodes/index.html`  
+例: `/para-nodes/contact-us/index.html`  
