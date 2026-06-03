@@ -13,6 +13,7 @@ class="breadcrumb default-bg"でクリーム色の背景色になる。
 async function getSitemap() {
   try {
     const res = await fetch('/statics/sitemap.json');
+    
     if (!res.ok) throw new Error();
     return await res.json();
   } catch (e) {
@@ -22,51 +23,38 @@ async function getSitemap() {
 }
 
 async function initBreadcrumb(href=null) {
-  const breadcrumbs = document.getElementsByClassName("bread-crumb");
+  const breadcrumbs = document.getElementsByClassName("breadcrumb");
   if (!breadcrumbs) return;
-
+  
   let error = null;
   const errorList = {
     "#0": "不明なエラー",
     "#1": "sitemapが見つかりません。",
-    "#2": "暗黙のPathであるが、_indexがから文字でない。",
+    "#2": "暗黙のPathであるが、_indexが空文字でない。",
     "#3": "暗黙のpathではなく、index.htmlではないファイルがエンドに来ている状態で、sitemap.jsonの記述がエンドの形状になっていない(valueがString型でない)。",
     "#4": ""
   }
 
   const sitemap = await getSitemap();
   if (!sitemap) error = "#1";
-
-  const color = {
-    able: breadcrumb.dataset.colorAble ?? "#008",
-    disable: breadcrumb.dataset.colorDisable ?? "black",
-    splitter: breadcrumb.dataset.colorSplitter ?? "black",
-    bg: breadcrumb.dataset.bgColor
-  };
-
-  // パス分解
-  const paths = (href??location.pathname).split("/");
-  paths.shift();
-  let implicit = false;
-  if (paths[paths.length-1] == "") {
-    implicit = true;
-    paths.pop();
-  }
-
-  function getList() {
+  
+  const goTop = document.createElement("span");
+  goTop.innerHTML = "TOP";
+  
+  function getList(paths) {
     try {
       const pathList = [];
       const nameList = [];
       const stateList = []; // この関数の最後以外では、エンドのパスでもtrueを入れる。
       let currentPath = "";
       let currentSitemap = sitemap;
-
+  
       stateList.push(true);
       pathList.push("/"+currentSitemap._index);
       nameList.push(currentSitemap._name)
-
+  
       let preIndex = currentSitemap._index;
-    
+      
       for(let ind = 0; ind < paths.length; ind++) {
         const path = paths[ind];
         if(!Object.keys(currentSitemap).includes(path)) {
@@ -113,34 +101,38 @@ async function initBreadcrumb(href=null) {
       stateList[stateList.length-1] = false;
       return {stateList, pathList, nameList}
     } catch(e) {
+      console.log(e.message);
       error = "#0";
       return;
     }
   }
   
-  const ret = await getList();
-
-  for (let breadcrumb of breadcrumbs) {
+  async function apply(breadcrumb) {
+    const color = {
+      able: breadcrumb.dataset.colorAble ?? "#008",
+      disable: breadcrumb.dataset.colorDisable ?? "black",
+      splitter: breadcrumb.dataset.colorSplitter ?? "black",
+      bg: breadcrumb.dataset.bgColor
+    };
+    
     breadcrumb.style.display = "inline-block";
     if (color.bg) breadcrumb.style.backgroundColor = color.bg;
-  
     if (error != null) {
-      const goTop = document.createElement("span");
-      goTop.innerHTML = "TOP";
-      goTop.style.color = color.able;
-      goTop.addEventListener("click", () => {
-        window.location.href = "/";
-      });
+      breadcrumb.innerHTML = "";
+      const clone = goTop.cloneNode(true);
+      clone.style.color = color.able;
       const errorSpan = document.createElement("span");
       errorSpan.innerHTML = error;
       errorSpan.style.marginLeft = "5px";
       errorSpan.style.fontSize = "12px";
       errorSpan.style.color = color.disable;
-      breadcrumb.innerHTML = "";
-      breadcrumb.appendChild(goTop.cloneNode(true));
+      clone.addEventListener("click", () => {
+        window.location.href = "/";
+      });
+      breadcrumb.appendChild(clone);
       breadcrumb.appendChild(errorSpan.cloneNode(true));
     } else {
-      const {stateList, pathList, nameList} = ret;
+      const {stateList, pathList, nameList} = res;
       const splitter = document.createElement("span");
       splitter.innerHTML = "<";
       splitter.style.color = color.splitter;
@@ -160,6 +152,23 @@ async function initBreadcrumb(href=null) {
         breadcrumb.appendChild(span.cloneNode(true));
       }
     }
+    
+    return true;
+  }
+  
+  // パス分解
+  const paths = (href??location.pathname).split("/");
+  paths.shift();
+  let implicit = false;
+  if (paths[paths.length-1] == "") {
+    implicit = true;
+    paths.pop();
+  }
+      
+  const res = await getList(paths);
+  
+  for (let breadcrumb of breadcrumbs) {
+    await apply(breadcrumb);
   }
 }
 
