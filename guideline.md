@@ -33,7 +33,10 @@
 また、基本的に使用する文字は`[a-z0-9\-]`
 
 ### 特別なディレクトリ  
-* statics  
+* `statics`  
   静的ファイル(.jsonや.js,.css,.txt等)を置くディレクトリ。
   .htmlはここには置かない。
 
+### 特別なファイル  
+* `/statics/main-script.js`  
+  \<script src="/statics/main-script.js">\<\\script>で読み込む。
